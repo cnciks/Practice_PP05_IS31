@@ -1,0 +1,258 @@
+using System;
+using System.Collections.Generic;
+
+namespace ConveyorBeltMonitoring
+{
+    public class DamageRecord
+    {
+        public int Id { get; set; } 
+        public DateTime Timestamp { get; set; } 
+        public string Location { get; set; } 
+        public string Description { get; set; } 
+        public int Severity { get; set; } 
+
+        public override string ToString()
+        {
+            return $"ID: {Id}, Время: {Timestamp}, Местоположение: {Location}, Описание: {Description}, Серьезность: {Severity}";
+        }
+    }
+
+    public class DamageDataService
+    {
+        private List<DamageRecord> _damageRecords; 
+        private int _nextId = 1; 
+
+        public DamageDataService()
+        {
+            _damageRecords = new List<DamageRecord>();
+        }
+
+        public void AddDamageRecord(DamageRecord record)
+        {
+            record.Id = _nextId++; 
+            _damageRecords.Add(record);
+            Console.WriteLine($"Добавлена запись: {record}");
+        }
+
+        public void DeleteDamageRecord(int id)
+        {
+            DamageRecord recordToRemove = _damageRecords.Find(r => r.Id == id);
+            if (recordToRemove != null)
+            {
+                _damageRecords.Remove(recordToRemove);
+                Console.WriteLine($"Удалена запись с ID: {id}");
+            }
+            else
+            {
+                Console.WriteLine($"Запись с ID {id} не найдена.");
+            }
+        }
+
+        public DamageRecord GetDamageRecord(int id)
+        {
+            return _damageRecords.Find(r => r.Id == id);
+        }
+
+        public void UpdateDamageRecord(DamageRecord updatedRecord)
+        {
+            DamageRecord existingRecord = _damageRecords.Find(r => r.Id == updatedRecord.Id);
+            if (existingRecord != null)
+            {
+                existingRecord.Timestamp = updatedRecord.Timestamp;
+                existingRecord.Location = updatedRecord.Location;
+                existingRecord.Description = updatedRecord.Description;
+                existingRecord.Severity = updatedRecord.Severity;
+                Console.WriteLine($"Обновлена запись с ID: {updatedRecord.Id}");
+            }
+            else
+            {
+                Console.WriteLine($"Запись с ID {updatedRecord.Id} не найдена.");
+            }
+        }
+
+        public void ListAllRecords()
+        {
+            if (_damageRecords.Count == 0)
+            {
+                Console.WriteLine("Нет записей о повреждениях.");
+                return;
+            }
+
+            Console.WriteLine("Список всех записей о повреждениях:");
+            foreach (var record in _damageRecords)
+            {
+                Console.WriteLine(record);
+            }
+        }
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            DamageDataService dataService = new DamageDataService();
+
+            while (true)
+            {
+                Console.WriteLine("\nВыберите действие:");
+                Console.WriteLine("1. Добавить запись о повреждении");
+                Console.WriteLine("2. Удалить запись о повреждении");
+                Console.WriteLine("3. Посмотреть запись о повреждении");
+                Console.WriteLine("4. Обновить запись о повреждении");
+                Console.WriteLine("5. Показать все записи");
+                Console.WriteLine("6. Выход");
+
+                Console.Write("Ваш выбор: ");
+                string choice = Console.ReadLine();
+
+                switch (choice)
+                {
+                    case "1":
+                        AddRecord(dataService);
+                        break;
+                    case "2":
+                        DeleteRecord(dataService);
+                        break;
+                    case "3":
+                        GetRecord(dataService);
+                        break;
+                    case "4":
+                        UpdateRecord(dataService);
+                        break;
+                    case "5":
+                        dataService.ListAllRecords();
+                        break;
+                    case "6":
+                        Console.WriteLine("Выход из программы.");
+                        return;
+                    default:
+                        Console.WriteLine("Неверный выбор. Попробуйте снова.");
+                        break;
+                }
+            }
+        }
+
+        static void AddRecord(DamageDataService dataService)
+        {
+            Console.WriteLine("Введите данные о повреждении:");
+
+            Console.Write("Местоположение: ");
+            string location = Console.ReadLine();
+
+            Console.Write("Описание: ");
+            string description = Console.ReadLine();
+
+            Console.Write("Степень серьезности (1-5): ");
+            if (!int.TryParse(Console.ReadLine(), out int severity))
+            {
+                Console.WriteLine("Неверный формат серьезности.  Используется значение по умолчанию: 3");
+                severity = 3;
+            }
+
+            DamageRecord newRecord = new DamageRecord
+            {
+                Timestamp = DateTime.Now,
+                Location = location,
+                Description = description,
+                Severity = severity
+            };
+
+            dataService.AddDamageRecord(newRecord);
+        }
+
+        static void DeleteRecord(DamageDataService dataService)
+        {
+            Console.Write("Введите ID записи для удаления: ");
+            if (int.TryParse(Console.ReadLine(), out int idToDelete))
+            {
+                dataService.DeleteDamageRecord(idToDelete);
+            }
+            else
+            {
+                Console.WriteLine("Неверный формат ID.");
+            }
+        }
+
+        static void GetRecord(DamageDataService dataService)
+        {
+            Console.Write("Введите ID записи для просмотра: ");
+            if (int.TryParse(Console.ReadLine(), out int idToGet))
+            {
+                DamageRecord record = dataService.GetDamageRecord(idToGet);
+                if (record != null)
+                {
+                    Console.WriteLine(record);
+                }
+                else
+                {
+                    Console.WriteLine($"Запись с ID {idToGet} не найдена.");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Неверный формат ID.");
+            }
+        }
+
+        static void UpdateRecord(DamageDataService dataService)
+        {
+            Console.Write("Введите ID записи для обновления: ");
+            if (int.TryParse(Console.ReadLine(), out int idToUpdate))
+            {
+                DamageRecord existingRecord = dataService.GetDamageRecord(idToUpdate);
+                if (existingRecord != null)
+                {
+                    Console.WriteLine("Введите новые данные для записи:");
+
+                    Console.Write("Местоположение (оставьте пустым, чтобы не изменять): ");
+                    string location = Console.ReadLine();
+                    if (string.IsNullOrEmpty(location))
+                    {
+                        location = existingRecord.Location;
+                    }
+
+
+                    Console.Write("Описание (оставьте пустым, чтобы не изменять): ");
+                    string description = Console.ReadLine();
+                    if (string.IsNullOrEmpty(description))
+                    {
+                        description = existingRecord.Description;
+                    }
+
+                    Console.Write("Степень серьезности (1-5, оставьте пустым, чтобы не изменять): ");
+                    string severityInput = Console.ReadLine();
+                    int severity;
+                    if (string.IsNullOrEmpty(severityInput))
+                    {
+                        severity = existingRecord.Severity;
+                    }
+                    else if (!int.TryParse(severityInput, out severity))
+                    {
+                        Console.WriteLine("Неверный формат серьезности.  Используется предыдущее значение: " + existingRecord.Severity);
+                        severity = existingRecord.Severity;
+                    }
+
+
+                    DamageRecord updatedRecord = new DamageRecord
+                    {
+                        Id = idToUpdate,
+                        Timestamp = DateTime.Now,
+                        Location = location,
+                        Description = description,
+                        Severity = severity
+                    };
+
+                    dataService.UpdateDamageRecord(updatedRecord);
+                }
+                else
+                {
+                    Console.WriteLine($"Запись с ID {idToUpdate} не найдена.");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Неверный формат ID.");
+            }
+        }
+    }
+}
